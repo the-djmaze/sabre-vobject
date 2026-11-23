@@ -2,14 +2,13 @@
 
 namespace Sabre\VObject\Component;
 
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Sabre\VObject;
 
 class VCardTest extends TestCase
 {
-    /**
-     * @dataProvider validateData
-     */
+    #[DataProvider('validateData')]
     public function testValidate(string $input, array $expectedWarnings, string $expectedRepairedOutput): void
     {
         $vcard = VObject\Reader::read($input);
@@ -31,7 +30,7 @@ class VCardTest extends TestCase
         );
     }
 
-    public function validateData(): array
+    public static function validateData(): array
     {
         $tests = [];
 
@@ -145,6 +144,27 @@ VCF;
         self::assertEquals('2@example.org', $vcard->getByType('EMAIL', 'work')->getValue());
         self::assertNull($vcard->getByType('EMAIL', 'non-existent'));
         self::assertNull($vcard->getByType('ADR', 'non-existent'));
+    }
+
+    public function testGetByTypes(): void
+    {
+        $vcard = <<<VCF
+BEGIN:VCARD
+VERSION:3.0
+TEL;TYPE=HOME,CELL:112233445566
+TEL;TYPE=WORK,cell:665544332211
+TEL;TYPE=WORK:7778889994455
+TEL;TYPE=EXTERNAL:555555555
+END:VCARD
+VCF;
+
+        $vcard = VObject\Reader::read($vcard);
+        self::assertEquals('112233445566', $vcard->getByTypes('TEL', ['home', 'cell'])->getValue());
+        self::assertEquals('665544332211', $vcard->getByTypes('TEL', ['work', 'cell'])->getValue());
+        self::assertEquals('7778889994455', $vcard->getByTypes('TEL', ['work'])->getValue());
+        self::assertEquals('555555555', $vcard->getByTypes('TEL', ['external'])->getValue());
+        self::assertNull($vcard->getByTypes('TEL', ['non-existent']));
+        self::assertNull($vcard->getByTypes('EMAIL', ['non-existent']));
     }
 
     public function testPreferredNoPref(): void

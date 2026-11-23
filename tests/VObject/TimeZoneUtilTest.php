@@ -2,6 +2,7 @@
 
 namespace Sabre\VObject;
 
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
 class TimeZoneUtilTest extends TestCase
@@ -11,24 +12,22 @@ class TimeZoneUtilTest extends TestCase
         TimeZoneUtil::clean();
     }
 
-    /**
-     * @dataProvider getMapping
-     */
+    #[DataProvider('getMapping')]
     public function testCorrectTZ(string $timezoneName): void
     {
         try {
             $tz = new \DateTimeZone($timezoneName);
             self::assertInstanceOf('DateTimeZone', $tz);
         } catch (\Exception $e) {
-            if (false !== strpos($e->getMessage(), 'Unknown or bad timezone')) {
-                $this->markTestSkipped($timezoneName.' is not (yet) supported in this PHP version. Update pecl/timezonedb');
+            if (str_contains($e->getMessage(), 'Unknown or bad timezone')) {
+                self::markTestSkipped($timezoneName.' is not (yet) supported in this PHP version. Update pecl/timezonedb');
             } else {
                 throw $e;
             }
         }
     }
 
-    public function getMapping(): array
+    public static function getMapping(): array
     {
         $map = array_merge(
             include __DIR__.'/../../lib/timezonedata/windowszones.php',
@@ -39,9 +38,7 @@ class TimeZoneUtilTest extends TestCase
 
         // PHPUNit requires an array of arrays
         return array_map(
-            function ($value) {
-                return [$value];
-            },
+            fn ($value) => [$value],
             $map
         );
     }
@@ -165,9 +162,7 @@ HI;
         self::assertEquals($ex->getName(), $tz->getName());
     }
 
-    /**
-     * @dataProvider getPHPTimeZoneIdentifiers
-     */
+    #[DataProvider('getPHPTimeZoneIdentifiers')]
     public function testTimeZoneIdentifiers(string $tzid): void
     {
         $tz = TimeZoneUtil::getTimeZone($tzid);
@@ -176,9 +171,7 @@ HI;
         self::assertEquals($ex->getName(), $tz->getName());
     }
 
-    /**
-     * @dataProvider getPHPTimeZoneBCIdentifiers
-     */
+    #[DataProvider('getPHPTimeZoneBCIdentifiers')]
     public function testTimeZoneBCIdentifiers(string $tzid): void
     {
         /*
@@ -189,8 +182,8 @@ HI;
          * that should be released in Feb 2023.
          */
         $versionOfPHP = \phpversion();
-        if ((('8.1.14' == $versionOfPHP) || ('8.2.1' == $versionOfPHP)) && \str_contains($tzid, '+')) {
-            $this->markTestSkipped("Timezone ids containing '+' do not work on PHP $versionOfPHP");
+        if ((('8.1.14' === $versionOfPHP) || ('8.2.1' === $versionOfPHP)) && \str_contains($tzid, '+')) {
+            self::markTestSkipped("Timezone ids containing '+' do not work on PHP $versionOfPHP");
         }
         $tz = TimeZoneUtil::getTimeZone($tzid);
         $ex = new \DateTimeZone($tzid);
@@ -198,24 +191,20 @@ HI;
         self::assertEquals($ex->getName(), $tz->getName());
     }
 
-    public function getPHPTimeZoneIdentifiers(): array
+    public static function getPHPTimeZoneIdentifiers(): array
     {
         // PHPUNit requires an array of arrays
         return array_map(
-            function ($value) {
-                return [$value];
-            },
+            fn ($value) => [$value],
             \DateTimeZone::listIdentifiers()
         );
     }
 
-    public function getPHPTimeZoneBCIdentifiers(): array
+    public static function getPHPTimeZoneBCIdentifiers(): array
     {
         // PHPUNit requires an array of arrays
         return array_map(
-            function ($value) {
-                return [$value];
-            },
+            fn ($value) => [$value],
             include __DIR__.'/../../lib/timezonedata/php-bc.php'
         );
     }
@@ -230,6 +219,72 @@ HI;
             $ex = new \DateTimeZone('Etc/GMT-4');
         }
         self::assertEquals($ex->getName(), $tz->getName());
+    }
+
+    #[DataProvider('getValidUtcOffsets')]
+    public function testValidUtcOffset(string $tzid, string $expectedOffset): void
+    {
+        $tz = TimeZoneUtil::getTimeZone($tzid, null, true);
+
+        self::assertSame($expectedOffset, $tz->getName());
+    }
+
+    public static function getValidUtcOffsets(): array
+    {
+        return [
+            ['UTC-04:00', '-04:00'],
+            ['UTC-0400', '-04:00'],
+            ['UTC+05:30', '+05:30'],
+            ['UTC+0545', '+05:45'],
+            ['utc-03:30', '-03:30'],
+            ['UTC+00:00', '+00:00'],
+            ['UTC-00:00', '+00:00'],
+            ['UTC+23:59', '+23:59'],
+        ];
+    }
+
+    #[DataProvider('getInvalidUtcOffsets')]
+    public function testInvalidUtcOffset(string $tzid): void
+    {
+        self::assertSame(date_default_timezone_get(), TimeZoneUtil::getTimeZone($tzid)->getName());
+
+        $this->expectException(\InvalidArgumentException::class);
+        TimeZoneUtil::getTimeZone($tzid, null, true);
+    }
+
+    public static function getInvalidUtcOffsets(): array
+    {
+        return [
+            ['UTC-24:00'],
+            ['UTC+04:60'],
+            ['UTC+4:00'],
+            ['UTC+04'],
+            ['UTC04:00'],
+            ['UTC+ab:cd'],
+            ['UTC+04:00extra'],
+            ["UTC+04:00\n"],
+            ['UTC+04::00'],
+            ['UTC+'],
+        ];
+    }
+
+    public function testParseUtcOffsetDateTime(): void
+    {
+        $calendar = Reader::read(<<<ICS
+BEGIN:VCALENDAR
+VERSION:2.0
+BEGIN:VEVENT
+UID:fixed-offset
+DTSTART;TZID="UTC-04:00":20260728T111500
+END:VEVENT
+END:VCALENDAR
+ICS
+        );
+
+        $start = $calendar->VEVENT->DTSTART->getDateTime();
+
+        self::assertSame('2026-07-28 11:15:00 -04:00', $start->format('Y-m-d H:i:s P'));
+        self::assertSame((new \DateTimeImmutable('2026-07-28T15:15:00Z'))->getTimestamp(), $start->getTimestamp());
     }
 
     public function testTimezoneFail(): void

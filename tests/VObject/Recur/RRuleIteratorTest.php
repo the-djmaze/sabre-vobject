@@ -2,6 +2,7 @@
 
 namespace Sabre\VObject\Recur;
 
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Sabre\VObject\InvalidDataException;
 
@@ -30,8 +31,9 @@ class RRuleIteratorTest extends TestCase
     }
 
     /**
-     * @dataProvider dst2HourlyTransitionProvider
+     * @param string[] $expected
      */
+    #[DataProvider('dst2HourlyTransitionProvider')]
     public function test2HourlyOnDstTransition(string $start, array $expected): void
     {
         $this->parse(
@@ -43,11 +45,11 @@ class RRuleIteratorTest extends TestCase
         );
     }
 
-    public function dst2HourlyTransitionProvider(): iterable
+    public static function dst2HourlyTransitionProvider(): iterable
     {
         yield 'On transition start' => [
-            'Start' => '2023-03-26 00:00:00',
-            'Expected' => [
+            'start' => '2023-03-26 00:00:00',
+            'expected' => [
                 '2023-03-26 00:00:00',
                 '2023-03-26 03:00:00',
                 '2023-03-26 04:00:00',
@@ -56,8 +58,8 @@ class RRuleIteratorTest extends TestCase
             ],
         ];
         yield 'During transition' => [
-            'Start' => '2023-03-26 00:15:00',
-            'Expected' => [
+            'start' => '2023-03-26 00:15:00',
+            'expected' => [
                 '2023-03-26 00:15:00',
                 '2023-03-26 03:15:00',
                 '2023-03-26 04:15:00',
@@ -66,8 +68,8 @@ class RRuleIteratorTest extends TestCase
             ],
         ];
         yield 'On transition end' => [
-            'Start' => '2023-03-26 01:00:00',
-            'Expected' => [
+            'start' => '2023-03-26 01:00:00',
+            'expected' => [
                 '2023-03-26 01:00:00',
                 '2023-03-26 03:00:00',
                 '2023-03-26 05:00:00',
@@ -76,8 +78,8 @@ class RRuleIteratorTest extends TestCase
             ],
         ];
         yield 'After transition end' => [
-            'Start' => '2023-03-26 01:15:00',
-            'Expected' => [
+            'start' => '2023-03-26 01:15:00',
+            'expected' => [
                 '2023-03-26 01:15:00',
                 '2023-03-26 03:15:00',
                 '2023-03-26 05:15:00',
@@ -88,8 +90,9 @@ class RRuleIteratorTest extends TestCase
     }
 
     /**
-     * @dataProvider dst6HourlyTransitionProvider
+     * @param string[] $expected
      */
+    #[DataProvider('dst6HourlyTransitionProvider')]
     public function testHourlyOnDstTransition(string $start, array $expected): void
     {
         $this->parse(
@@ -101,11 +104,11 @@ class RRuleIteratorTest extends TestCase
         );
     }
 
-    public function dst6HourlyTransitionProvider(): iterable
+    public static function dst6HourlyTransitionProvider(): iterable
     {
         yield 'On transition start' => [
-            'Start' => '2023-03-25 20:00:00',
-            'Expected' => [
+            'start' => '2023-03-25 20:00:00',
+            'expected' => [
                 '2023-03-25 20:00:00',
                 '2023-03-26 03:00:00',
                 '2023-03-26 08:00:00',
@@ -114,8 +117,8 @@ class RRuleIteratorTest extends TestCase
             ],
         ];
         yield 'During transition' => [
-            'Start' => '2023-03-25 20:15:00',
-            'Expected' => [
+            'start' => '2023-03-25 20:15:00',
+            'expected' => [
                 '2023-03-25 20:15:00',
                 '2023-03-26 03:15:00',
                 '2023-03-26 08:15:00',
@@ -124,8 +127,8 @@ class RRuleIteratorTest extends TestCase
             ],
         ];
         yield 'On transition end' => [
-            'Start' => '2023-03-25 21:00:00',
-            'Expected' => [
+            'start' => '2023-03-25 21:00:00',
+            'expected' => [
                 '2023-03-25 21:00:00',
                 '2023-03-26 03:00:00',
                 '2023-03-26 09:00:00',
@@ -134,8 +137,8 @@ class RRuleIteratorTest extends TestCase
             ],
         ];
         yield 'After transition end' => [
-            'Start' => '2023-03-25 21:15:00',
-            'Expected' => [
+            'start' => '2023-03-25 21:15:00',
+            'expected' => [
                 '2023-03-25 21:15:00',
                 '2023-03-26 03:15:00',
                 '2023-03-26 09:15:00',
@@ -279,8 +282,9 @@ class RRuleIteratorTest extends TestCase
     }
 
     /**
-     * @dataProvider dstDailyTransitionProvider
+     * @param string[] $expected
      */
+    #[DataProvider('dstDailyTransitionProvider')]
     public function testDailyOnDstTransition(string $start, array $expected): void
     {
         $this->parse(
@@ -292,11 +296,11 @@ class RRuleIteratorTest extends TestCase
         );
     }
 
-    public function dstDailyTransitionProvider(): iterable
+    public static function dstDailyTransitionProvider(): iterable
     {
         yield 'On transition start' => [
-            'Start' => '2023-03-24 02:00:00',
-            'Expected' => [
+            'start' => '2023-03-24 02:00:00',
+            'expected' => [
                 '2023-03-24 02:00:00',
                 '2023-03-25 02:00:00',
                 '2023-03-26 03:00:00',
@@ -305,8 +309,8 @@ class RRuleIteratorTest extends TestCase
             ],
         ];
         yield 'During transition' => [
-            'Start' => '2023-03-24 02:15:00',
-            'Expected' => [
+            'start' => '2023-03-24 02:15:00',
+            'expected' => [
                 '2023-03-24 02:15:00',
                 '2023-03-25 02:15:00',
                 '2023-03-26 03:15:00',
@@ -315,8 +319,8 @@ class RRuleIteratorTest extends TestCase
             ],
         ];
         yield 'On transition end' => [
-            'Start' => '2023-03-24 03:00:00',
-            'Expected' => [
+            'start' => '2023-03-24 03:00:00',
+            'expected' => [
                 '2023-03-24 03:00:00',
                 '2023-03-25 03:00:00',
                 '2023-03-26 03:00:00',
@@ -325,8 +329,8 @@ class RRuleIteratorTest extends TestCase
             ],
         ];
         yield 'After transition end' => [
-            'Start' => '2023-03-24 03:15:00',
-            'Expected' => [
+            'start' => '2023-03-24 03:15:00',
+            'expected' => [
                 '2023-03-24 03:15:00',
                 '2023-03-25 03:15:00',
                 '2023-03-26 03:15:00',
@@ -486,8 +490,9 @@ class RRuleIteratorTest extends TestCase
     }
 
     /**
-     * @dataProvider dstWeeklyTransitionProvider
+     * @param string[] $expected
      */
+    #[DataProvider('dstWeeklyTransitionProvider')]
     public function testWeeklyOnDstTransition(string $start, array $expected): void
     {
         $this->parse(
@@ -499,11 +504,11 @@ class RRuleIteratorTest extends TestCase
         );
     }
 
-    public function dstWeeklyTransitionProvider(): iterable
+    public static function dstWeeklyTransitionProvider(): iterable
     {
         yield 'On transition start' => [
-            'Start' => '2023-03-12 02:00:00',
-            'Expected' => [
+            'start' => '2023-03-12 02:00:00',
+            'expected' => [
                 '2023-03-12 02:00:00',
                 '2023-03-19 02:00:00',
                 '2023-03-26 03:00:00',
@@ -512,8 +517,8 @@ class RRuleIteratorTest extends TestCase
             ],
         ];
         yield 'During transition' => [
-            'Start' => '2023-03-12 02:15:00',
-            'Expected' => [
+            'start' => '2023-03-12 02:15:00',
+            'expected' => [
                 '2023-03-12 02:15:00',
                 '2023-03-19 02:15:00',
                 '2023-03-26 03:15:00',
@@ -522,8 +527,8 @@ class RRuleIteratorTest extends TestCase
             ],
         ];
         yield 'On transition end' => [
-            'Start' => '2023-03-12 03:00:00',
-            'Expected' => [
+            'start' => '2023-03-12 03:00:00',
+            'expected' => [
                 '2023-03-12 03:00:00',
                 '2023-03-19 03:00:00',
                 '2023-03-26 03:00:00',
@@ -532,8 +537,8 @@ class RRuleIteratorTest extends TestCase
             ],
         ];
         yield 'After transition end' => [
-            'Start' => '2023-03-12 03:15:00',
-            'Expected' => [
+            'start' => '2023-03-12 03:15:00',
+            'expected' => [
                 '2023-03-12 03:15:00',
                 '2023-03-19 03:15:00',
                 '2023-03-26 03:15:00',
@@ -738,8 +743,9 @@ class RRuleIteratorTest extends TestCase
     }
 
     /**
-     * @dataProvider dstMonthlyTransitionProvider
+     * @param string[] $expected
      */
+    #[DataProvider('dstMonthlyTransitionProvider')]
     public function testMonthlyOnDstTransition(string $start, array $expected): void
     {
         $this->parse(
@@ -751,11 +757,11 @@ class RRuleIteratorTest extends TestCase
         );
     }
 
-    public function dstMonthlyTransitionProvider(): iterable
+    public static function dstMonthlyTransitionProvider(): iterable
     {
         yield 'On transition start' => [
-            'Start' => '2023-01-26 02:00:00',
-            'Expected' => [
+            'start' => '2023-01-26 02:00:00',
+            'expected' => [
                 '2023-01-26 02:00:00',
                 '2023-02-26 02:00:00',
                 '2023-03-26 03:00:00',
@@ -764,8 +770,8 @@ class RRuleIteratorTest extends TestCase
             ],
         ];
         yield 'During transition' => [
-            'Start' => '2023-01-26 02:15:00',
-            'Expected' => [
+            'start' => '2023-01-26 02:15:00',
+            'expected' => [
                 '2023-01-26 02:15:00',
                 '2023-02-26 02:15:00',
                 '2023-03-26 03:15:00',
@@ -774,8 +780,8 @@ class RRuleIteratorTest extends TestCase
             ],
         ];
         yield 'On transition end' => [
-            'Start' => '2023-01-26 03:00:00',
-            'Expected' => [
+            'start' => '2023-01-26 03:00:00',
+            'expected' => [
                 '2023-01-26 03:00:00',
                 '2023-02-26 03:00:00',
                 '2023-03-26 03:00:00',
@@ -784,8 +790,8 @@ class RRuleIteratorTest extends TestCase
             ],
         ];
         yield 'After transition end' => [
-            'Start' => '2023-01-26 03:15:00',
-            'Expected' => [
+            'start' => '2023-01-26 03:15:00',
+            'expected' => [
                 '2023-01-26 03:15:00',
                 '2023-02-26 03:15:00',
                 '2023-03-26 03:15:00',
@@ -794,8 +800,8 @@ class RRuleIteratorTest extends TestCase
             ],
         ];
         yield 'During transition on 31st day of month' => [
-            'Start' => '2024-01-31 02:15:00',
-            'Expected' => [
+            'start' => '2024-01-31 02:15:00',
+            'expected' => [
                 '2024-01-31 02:15:00',
                 '2024-03-31 03:15:00',
                 '2024-05-31 02:15:00',
@@ -1147,8 +1153,9 @@ class RRuleIteratorTest extends TestCase
     }
 
     /**
-     * @dataProvider dstYearlyTransitionProvider
+     * @param string[] $expected
      */
+    #[DataProvider('dstYearlyTransitionProvider')]
     public function testYearlyOnDstTransition(string $start, array $expected): void
     {
         $this->parse(
@@ -1160,11 +1167,11 @@ class RRuleIteratorTest extends TestCase
         );
     }
 
-    public function dstYearlyTransitionProvider(): iterable
+    public static function dstYearlyTransitionProvider(): iterable
     {
         yield 'On transition start' => [
-            'Start' => '2021-03-26 02:00:00',
-            'Expected' => [
+            'start' => '2021-03-26 02:00:00',
+            'expected' => [
                 '2021-03-26 02:00:00',
                 '2022-03-26 02:00:00',
                 '2023-03-26 03:00:00',
@@ -1173,8 +1180,8 @@ class RRuleIteratorTest extends TestCase
             ],
         ];
         yield 'During transition' => [
-            'Start' => '2021-03-26 02:15:00',
-            'Expected' => [
+            'start' => '2021-03-26 02:15:00',
+            'expected' => [
                 '2021-03-26 02:15:00',
                 '2022-03-26 02:15:00',
                 '2023-03-26 03:15:00',
@@ -1183,8 +1190,8 @@ class RRuleIteratorTest extends TestCase
             ],
         ];
         yield 'On transition end' => [
-            'Start' => '2021-03-26 03:00:00',
-            'Expected' => [
+            'start' => '2021-03-26 03:00:00',
+            'expected' => [
                 '2021-03-26 03:00:00',
                 '2022-03-26 03:00:00',
                 '2023-03-26 03:00:00',
@@ -1193,8 +1200,8 @@ class RRuleIteratorTest extends TestCase
             ],
         ];
         yield 'After transition end' => [
-            'Start' => '2021-03-26 03:15:00',
-            'Expected' => [
+            'start' => '2021-03-26 03:15:00',
+            'expected' => [
                 '2021-03-26 03:15:00',
                 '2022-03-26 03:15:00',
                 '2023-03-26 03:15:00',
@@ -1420,14 +1427,15 @@ class RRuleIteratorTest extends TestCase
      * This caused an incorrect date to be returned by the rule iterator when
      * start date was not on the rrule list.
      *
-     * @dataProvider yearlyStartDateNotOnRRuleListProvider
+     * @param string[] $expected
      */
+    #[DataProvider('yearlyStartDateNotOnRRuleListProvider')]
     public function testYearlyStartDateNotOnRRuleList(string $rule, string $start, array $expected): void
     {
         $this->parse($rule, $start, $expected);
     }
 
-    public function yearlyStartDateNotOnRRuleListProvider(): array
+    public static function yearlyStartDateNotOnRRuleListProvider(): array
     {
         return [
             [
