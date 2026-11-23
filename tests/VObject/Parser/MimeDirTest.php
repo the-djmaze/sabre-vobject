@@ -2,6 +2,7 @@
 
 namespace Sabre\VObject\Parser;
 
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Sabre\VObject\Component\VCalendar;
 use Sabre\VObject\ParseException;
@@ -101,6 +102,23 @@ VCF;
         $mimeDir->parse($vcard);
     }
 
+    public static function provideEmptyParserInput(): array
+    {
+        return [
+            [null, 'No input provided to parse'],
+            ['', 'End of document reached prematurely'],
+        ];
+    }
+
+    #[DataProvider('provideEmptyParserInput')]
+    public function testParseEmpty($input, $expectedExceptionMessage): void
+    {
+        $this->expectException(ParseException::class);
+        $this->expectExceptionMessage($expectedExceptionMessage);
+        $mimeDir = new MimeDir();
+        $mimeDir->parse($input);
+    }
+
     public function testDecodeWindows1252(): void
     {
         $vcard = <<<VCF
@@ -169,9 +187,8 @@ EOF;
 
     /**
      * @covers \Sabre\VObject\Parser\MimeDir::readProperty
-     *
-     * @dataProvider provideBrokenVCalendar
      */
+    #[DataProvider('provideBrokenVCalendar')]
     public function testBrokenMultilineContentDoesNotBreakImportWhenSetToIgnoreBrokenLines(string $vcalendar): void
     {
         $mimeDir = new MimeDir(null, MimeDir::OPTION_IGNORE_INVALID_LINES);
@@ -182,10 +199,9 @@ EOF;
     /**
      * @covers \Sabre\VObject\Parser\MimeDir::readProperty
      *
-     * @dataProvider provideBrokenVCalendar
-     *
      * @param string $vcalendar
      */
+    #[DataProvider('provideBrokenVCalendar')]
     public function testBrokenMultilineContentDoesBreakImport($vcalendar): void
     {
         $mimeDir = new MimeDir();
@@ -193,7 +209,7 @@ EOF;
         $mimeDir->parse($vcalendar);
     }
 
-    public function provideBrokenVCalendar(): array
+    public static function provideBrokenVCalendar(): array
     {
         return [[<<<EOF
 BEGIN:VCALENDAR
@@ -237,7 +253,42 @@ OAKLAND, CA 94611:
 SEQUENCE:0
 END:VEVENT
 END:VCALENDAR
-EOF
+EOF,
         ]];
+    }
+
+    public function testPropertyName0(): void
+    {
+        $iCal = <<<EOF
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:PRODID
+BEGIN:VEVENT
+0:test
+END:VEVENT
+END:VCALENDAR
+EOF;
+
+        $mimeDir = new MimeDir();
+        $vevent = $mimeDir->parse($iCal);
+        // @phpstan-ignore property.dynamicName
+        self::assertEquals('test', $vevent->VEVENT->{0}->getValue());
+    }
+
+    public function testInvalidParameter(): void
+    {
+        $this->expectException(ParseException::class);
+        $this->expectExceptionMessage('Invalid Mimedir file. Line starting at 3: Missing parameter name for parameter value "value2"');
+        $vcard = <<<EOF
+BEGIN:VCARD
+VERSION:4.0
+FN;P1=value1; P2=value2:value
+UID:1234
+END:VCARD
+EOF;
+        $mimeDir = new MimeDir();
+        $vcard = $mimeDir->parse($vcard);
+
+        echo $vcard->serialize();
     }
 }

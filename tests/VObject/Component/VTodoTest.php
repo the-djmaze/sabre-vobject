@@ -2,20 +2,19 @@
 
 namespace Sabre\VObject\Component;
 
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Sabre\VObject\Reader;
 
 class VTodoTest extends TestCase
 {
-    /**
-     * @dataProvider timeRangeTestData
-     */
+    #[DataProvider('timeRangeTestData')]
     public function testInTimeRange(VTodo $vtodo, \DateTime $start, \DateTime $end, bool $outcome): void
     {
         self::assertEquals($outcome, $vtodo->isInTimeRange($start, $end));
     }
 
-    public function timeRangeTestData(): array
+    public static function timeRangeTestData(): array
     {
         $tests = [];
 
@@ -73,6 +72,31 @@ PRODID:YoYo
 BEGIN:VTODO
 UID:1234-21355-123156
 DTSTAMP:20140402T183400Z
+END:VTODO
+END:VCALENDAR
+HI;
+
+        $obj = Reader::read($input);
+
+        $warnings = $obj->validate();
+        $messages = [];
+        foreach ($warnings as $warning) {
+            $messages[] = $warning['message'];
+        }
+
+        self::assertEquals([], $messages);
+    }
+
+    public function testValidateExtraProperty(): void
+    {
+        $input = <<<HI
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:YoYo
+BEGIN:VTODO
+UID:1234-21355-123156
+DTSTAMP:20140402T183400Z
+PERCENT:80
 END:VTODO
 END:VCALENDAR
 HI;
@@ -166,6 +190,33 @@ HI;
 
         self::assertEquals([
             'DUE must occur after DTSTART',
+        ], $messages);
+    }
+
+    public function testValidateDuplicatePercentComplete(): void
+    {
+        $input = <<<HI
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:YoYo
+BEGIN:VTODO
+UID:8ed267e1-67c4-467d-8ae2-28e6ff03b033
+DTSTAMP:20240729T133309Z
+PERCENT-COMPLETE:70
+PERCENT-COMPLETE:80
+END:VTODO
+END:VCALENDAR
+HI;
+        $obj = Reader::read($input);
+
+        $warnings = $obj->validate();
+        $messages = [];
+        foreach ($warnings as $warning) {
+            $messages[] = $warning['message'];
+        }
+
+        self::assertEquals([
+            'PERCENT-COMPLETE MUST NOT appear more than once in a VTODO component',
         ], $messages);
     }
 }
