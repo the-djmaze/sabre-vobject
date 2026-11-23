@@ -138,6 +138,7 @@ class VCard extends VObject\Document
         'PRONOUNS' => VObject\Property\FlatText::class,
         'SOCIALPROFILE' => VObject\Property\Uri::class,
 
+        // KMail
         'X-CRYPTO' => VObject\Property\XCrypto::class,
     ];
 
